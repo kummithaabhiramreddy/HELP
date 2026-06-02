@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HELP – Human Emergency Life Provider</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --red: #E8192C;
+    --red-dark: #B5121F;
+    --red-glow: rgba(232,25,44,0.18);
+    --bg: #0A0A0B;
+    --surface: #111114;
+    --card: #18181C;
+    --border: rgba(255,255,255,0.08);
+    --text: #F4F4F5;
+    --muted: #8A8A96;
+    --white: #ffffff;
+    --green: #22C55E;
+    --blue: #3B82F6;
+    --gold: #F59E0B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%; width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+  }
+
+  /* ─── APP SHELL ─────────────────────────────────── */
+  #app {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    max-width: 430px; margin: 0 auto;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* ─── SCREENS ────────────────────────────────────── */
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transition: opacity .35s ease, transform .35s ease;
+    transform: translateY(20px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen.active {
+    opacity: 1; pointer-events: all;
+    transform: translateY(0);
+  }
+
+  /* ─── SPLASH ─────────────────────────────────────── */
+  #splash {
+    align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 30%, rgba(232,25,44,0.22) 0%, var(--bg) 65%);
+  }
+  .splash-logo {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    animation: popIn .7s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .splash-cross {
+    width: 88px; height: 88px;
+    background: var(--red);
+    border-radius: 22px;
+    display: grid; place-items: center;
+    box-shadow: 0 0 60px rgba(232,25,44,0.55), 0 0 120px rgba(232,25,44,0.2);
+    position: relative;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  .splash-cross::before, .splash-cross::after {
+    content: ''; position: absolute;
+    background: white; border-radius: 4px;
+  }
+  .splash-cross::before { width: 44px; height: 14px; }
+  .splash-cross::after  { width: 14px; height: 44px; }
+
+  .splash-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 64px; letter-spacing: 8px;
+    color: var(--white);
+    margin-top: 20px;
+    line-height: 1;
+  }
+  .splash-sub {
+    font-size: 11px; letter-spacing: 3px; color: var(--muted);
+    text-transform: uppercase; margin-top: 4px; text-align: center;
+  }
+  .splash-tagline {
+    font-size: 14px; color: var(--muted); margin-top: 32px;
+    text-align: center; max-width: 220px; line-height: 1.6;
+  }
+  .splash-btns {
+    display: flex; flex-direction: column; gap: 12px;
+    width: 100%; max-width: 300px; margin-top: 52px;
+  }
+  .btn-primary {
+    background: var(--red);
+    color: white; border: none;
+    border-radius: 14px; height: 52px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; letter-spacing: .5px;
+    transition: transform .15s, box-shadow .15s;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0); transition: background .15s;
+  }
+  .btn-primary:active { transform: scale(.97); }
+  .btn-primary:active::after { background: rgba(255,255,255,.08); }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text); border-radius: 14px; height: 52px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: border-color .15s, transform .15s;
+  }
+  .btn-secondary:active { transform: scale(.97); border-color: rgba(255,255,255,.2); }
+
+  /* ─── FORM SCREENS ───────────────────────────────── */
+  .form-screen {
+    padding: 0;
+    background: var(--bg);
+  }
+  .form-header {
+    padding: 56px 24px 0;
+    display: flex; flex-direction: column;
+  }
+  .back-btn {
+    width: 40px; height: 40px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; cursor: pointer;
+    display: grid; place-items: center;
+    margin-bottom: 28px; color: var(--text);
+    font-size: 18px; transition: background .15s;
+  }
+  .back-btn:active { background: rgba(255,255,255,.06); }
+  .screen-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px; letter-spacing: 3px;
+    line-height: 1; color: var(--white);
+  }
+  .screen-sub { font-size: 14px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+  .form-body { padding: 32px 24px 40px; display: flex; flex-direction: column; gap: 16px; }
+
+  .field-label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 7px; }
+
+  .field-wrap { position: relative; }
+  .field-input {
+    width: 100%; height: 52px;
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    padding: 0 16px;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+    -webkit-appearance: none;
+  }
+  .field-input::placeholder { color: var(--muted); }
+  .field-input:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px var(--red-glow);
+  }
+  .field-input.error { border-color: var(--red) !important; animation: shake .3s; }
+
+  select.field-input { appearance: none; -webkit-appearance: none; cursor: pointer; }
+
+  .password-toggle {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--muted); font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .btn-google {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    height: 52px; border-radius: 14px;
+    background: var(--card); border: 1.5px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500; cursor: pointer;
+    transition: border-color .15s, transform .15s;
+  }
+  .btn-google:active { transform: scale(.97); }
+  .btn-google svg { flex-shrink: 0; }
+
+  .switch-link {
+    text-align: center; font-size: 14px; color: var(--muted); margin-top: 8px;
+  }
+  .switch-link span { color: var(--red); cursor: pointer; font-weight: 600; }
+
+  .err-msg {
+    background: rgba(232,25,44,.08); border: 1px solid rgba(232,25,44,.25);
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 13px; color: #FF6B78; display: none;
+  }
+  .err-msg.show { display: block; }
+
+  /* ─── SPLASH STATS ───────────────────────────────── */
+  .splash-stats {
+    display: flex; gap: 0;
+    width: 100%; max-width: 320px;
+    margin-top: 36px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .splash-stat {
+    flex: 1; padding: 14px 10px;
+    display: flex; flex-direction: column; align-items: center;
+    position: relative;
+  }
+  .splash-stat + .splash-stat::before {
+    content: ''; position: absolute; left: 0; top: 20%; height: 60%;
+    width: 1px; background: var(--border);
+  }
+  .splash-stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px; font-weight: 700; line-height: 1;
+    color: var(--white);
+  }
+  .splash-stat-num.red  { color: #FF4D5E; }
+  .splash-stat-num.blue { color: #60A5FA; }
+  .splash-stat-num.green{ color: #4ADE80; }
+  .splash-stat-icon { font-size: 15px; margin-bottom: 4px; }
+  .splash-stat-label { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: .5px; text-align: center; }
+
+  /* ─── DASHBOARD ──────────────────────────────────── */
+  #dashboard {
+    background: var(--bg);
+    padding-bottom: 24px;
+  }
+  .dash-header {
+    padding: 52px 24px 0;
+    background: linear-gradient(180deg, rgba(232,25,44,0.1) 0%, transparent 100%);
+  }
+  .dash-greeting { font-size: 13px; color: var(--muted); margin-bottom: 2px; }
+  .dash-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; letter-spacing: 2px; color: var(--white); line-height: 1;
+  }
+  .dash-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--red-glow); border: 1px solid rgba(232,25,44,.3);
+    border-radius: 999px; padding: 4px 12px;
+    font-size: 11px; color: var(--red); font-weight: 600; letter-spacing: .5px;
+    margin-top: 8px;
+  }
+  .dash-badge::before { content: '●'; font-size: 8px; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; padding: 24px 24px 0;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 20px 16px;
+    position: relative; overflow: hidden;
+    transition: transform .2s;
+  }
+  .stat-card:active { transform: scale(.97); }
+  .stat-card.full { grid-column: 1 / -1; }
+
+  .stat-card::before {
+    content: ''; position: absolute;
+    width: 80px; height: 80px; border-radius: 50%;
+    top: -20px; right: -20px; opacity: .12;
+  }
+  .stat-card.red::before { background: var(--red); }
+  .stat-card.blue::before { background: var(--blue); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.gold::before { background: var(--gold); }
+
+  .stat-icon { font-size: 26px; margin-bottom: 12px; }
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 32px; font-weight: 700;
+    color: var(--white); line-height: 1;
+    letter-spacing: -1px;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; opacity: .7; }
+
+  .stat-card.red .stat-num { color: #FF4D5E; }
+  .stat-card.blue .stat-num { color: #60A5FA; }
+  .stat-card.green .stat-num { color: #4ADE80; }
+  .stat-card.gold .stat-num { color: #FBB94E; }
+
+  .section-title {
+    padding: 28px 24px 12px;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+
+  .action-list { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+  .action-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: border-color .2s, transform .15s;
+  }
+  .action-card:active { transform: scale(.98); border-color: rgba(232,25,44,.3); }
+  .action-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 20px; flex-shrink: 0;
+  }
+  .action-icon.red-bg { background: rgba(232,25,44,.15); }
+  .action-icon.blue-bg { background: rgba(59,130,246,.15); }
+  .action-icon.green-bg { background: rgba(34,197,94,.15); }
+  .action-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .action-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .action-arrow { margin-left: auto; color: var(--muted); font-size: 16px; }
+
+  .logout-btn {
+    margin: 24px 24px 0;
+    height: 48px; border-radius: 14px;
+    border: 1.5px solid rgba(232,25,44,.3);
+    background: transparent; color: var(--red);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background .15s;
+  }
+  .logout-btn:active { background: var(--red-glow); }
+
+  /* ─── TOAST ──────────────────────────────────────── */
+  #toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 20px;
+    font-size: 14px; color: var(--text);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999; white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { border-color: rgba(34,197,94,.3); color: var(--green); }
+  #toast.error { border-color: rgba(232,25,44,.3); color: #FF6B78; }
+
+  /* ─── GOOGLE MODAL ───────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
+    z-index: 500; display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    border-top: 1px solid var(--border);
+    width: 100%; padding: 20px 24px 40px;
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.32,0,.67,0);
+  }
+  .modal-overlay.open .modal-sheet { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 20px; }
+  .modal-title { font-family: 'Bebas Neue'; font-size: 28px; letter-spacing: 2px; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .download-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .download-step {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: rgba(255,255,255,.03); border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px;
+  }
+  .download-step strong { color: var(--white); min-width: 62px; font-size: 13px; line-height: 1.4; }
+  .download-step p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .download-link {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100%; height: 46px; border-radius: 14px;
+    background: var(--red); color: white; text-decoration: none;
+    font-weight: 600; font-size: 14px;
+  }
+  .google-account-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .google-account-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 12px 14px; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .google-account-item:active { border-color: rgba(59,130,246,.5); }
+  .google-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 15px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .google-account-info { flex: 1; }
+  .google-account-name { font-size: 14px; font-weight: 600; }
+  .google-account-email { font-size: 12px; color: var(--muted); }
+  .google-account-status { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 2px 8px; }
+  .status-ok { background: rgba(34,197,94,.12); color: var(--green); }
+  .status-no { background: rgba(232,25,44,.1); color: #FF6B78; }
+
+  /* ─── ANIMATIONS ─────────────────────────────────── */
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(.85) translateY(20px); }
+    to   { opacity: 1; transform: scale(1)  translateY(0); }
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 40px rgba(232,25,44,.5), 0 0 80px rgba(232,25,44,.18); }
+    50%      { box-shadow: 0 0 70px rgba(232,25,44,.7), 0 0 140px rgba(232,25,44,.25); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-6px); }
+    40%,80% { transform: translateX(6px); }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* scrollbar hide */
+  .screen::-webkit-scrollbar { display: none; }
+  .screen { scrollbar-width: none; }
+
+  /* ─── GSI FALLBACK OVERLAY ───────────────────────── */
+  #gsi-fallback-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.75); backdrop-filter: blur(8px);
+    z-index: 600; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  #gsi-fallback-overlay.open { opacity: 1; pointer-events: all; }
+  .gsi-fallback-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 28px 24px 24px;
+    width: 340px; max-width: 92vw;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .gsi-fallback-card .modal-title { font-size: 22px; margin-bottom: 0; }
+  .gsi-fallback-card .modal-sub { text-align: center; }
+  #gsi-fallback-btn { width: 100%; display: flex; justify-content: center; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SPLASH ══════════════════════════════════════ -->
+  <div class="screen active" id="splash">
+    <div class="splash-logo">
+      <div class="splash-cross"></div>
+      <div class="splash-title">HELP</div>
+      <div class="splash-sub">Human Emergency Life Provider</div>
+      <div class="splash-tagline">Connecting lives. One donor, one chance, infinite hope.</div>
+    </div>
+
+    <!-- Live Counts -->
+    <div class="splash-stats">
+      <div class="splash-stat">
+        <div class="splash-stat-icon">👥</div>
+        <div class="splash-stat-num red" id="splash-users">0</div>
+        <div class="splash-stat-label">Users</div>
+      </div>
+      <div class="splash-stat">
+        <div class="splash-stat-icon">🩸</div>
+        <div class="splash-stat-num blue" id="splash-blood">0</div>
+        <div class="splash-stat-label">Blood Donors</div>
+      </div>
+      <div class="splash-stat">
+        <div class="splash-stat-icon">🫀</div>
+        <div class="splash-stat-num green" id="splash-organ">0</div>
+        <div class="splash-stat-label">Organ Donors</div>
+      </div>
+    </div>
+
+    <div class="splash-btns">
+      <button class="btn-primary" onclick="showScreen('register')">Create Account</button>
+      <button class="btn-secondary" onclick="showScreen('login')">Sign In</button>
+      <button class="btn-secondary" onclick="downloadAppFile()">Download App</button>
+    </div>
+  </div>
+
+  <!-- ══ REGISTER ════════════════════════════════════ -->
+  <div class="screen form-screen" id="register">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('splash')">←</button>
+      <div class="screen-title">CREATE<br>ACCOUNT</div>
+      <div class="screen-sub">Join HELP and save lives today.</div>
+    </div>
+    <div class="form-body">
+      <div id="reg-err" class="err-msg"></div>
+
+      <div>
+        <div class="field-label">Full Name</div>
+        <div class="field-wrap">
+          <input class="field-input" id="reg-name" type="text" placeholder="Your full name" autocomplete="name">
+        </div>
+      </div>
+
+      <div>
+        <div class="field-label">Email</div>
+        <div class="field-wrap">
+          <input class="field-input" id="reg-email" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+      </div>
+
+      <div>
+        <div class="field-label">Password</div>
+        <div class="field-wrap">
+          <input class="field-input" id="reg-pass" type="password" placeholder="Min. 6 characters">
+          <button class="password-toggle" onclick="togglePwd('reg-pass',this)">👁</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="field-label">Blood Group</div>
+        <div class="field-wrap">
+          <select class="field-input" id="reg-blood">
+            <option value="">Select blood group</option>
+            <option>A+</option><option>A−</option><option>B+</option><option>B−</option>
+            <option>AB+</option><option>AB−</option><option>O+</option><option>O−</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="doRegister()">Create Account</button>
+
+      <div class="divider">or</div>
+
+      <button class="btn-google" onclick="openGoogleModal('register')">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.4 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.1c-.5 2.7-2.1 5-4.5 6.5v5.4h7.3c4.3-3.9 6.5-9.7 6.5-15.9z"/><path fill="#34A853" d="M24 46c6.1 0 11.2-2 14.9-5.5l-7.3-5.7c-2 1.4-4.6 2.2-7.6 2.2-5.8 0-10.7-3.9-12.5-9.2H3.9v5.9C7.6 40.9 15.2 46 24 46z"/><path fill="#FBBC05" d="M11.5 27.8c-.5-1.4-.7-2.8-.7-4.3s.3-2.9.7-4.3V13.3H3.9C2.3 16.5 1.5 20.1 1.5 24s.8 7.5 2.4 10.7l7.6-6.9z"/><path fill="#EA4335" d="M24 9.5c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C34.9 2.8 29.8.5 24 .5 15.2.5 7.6 5.6 3.9 13.2l7.6 6.9C13.3 13.4 18.2 9.5 24 9.5z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="switch-link">Already have an account? <span onclick="showScreen('login')">Sign In</span></div>
+    </div>
+  </div>
+
+  <!-- ══ LOGIN ═══════════════════════════════════════ -->
+  <div class="screen form-screen" id="login">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('splash')">←</button>
+      <div class="screen-title">WELCOME<br>BACK</div>
+      <div class="screen-sub">Sign in to continue saving lives.</div>
+    </div>
+    <div class="form-body">
+      <div id="login-err" class="err-msg"></div>
+
+      <div>
+        <div class="field-label">Email</div>
+        <div class="field-wrap">
+          <input class="field-input" id="login-email" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+      </div>
+
+      <div>
+        <div class="field-label">Password</div>
+        <div class="field-wrap">
+          <input class="field-input" id="login-pass" type="password" placeholder="Your password">
+          <button class="password-toggle" onclick="togglePwd('login-pass',this)">👁</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="doLogin()">Sign In</button>
+
+      <div class="divider">or</div>
+
+      <button class="btn-google" onclick="openGoogleModal('login')">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.4 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.1c-.5 2.7-2.1 5-4.5 6.5v5.4h7.3c4.3-3.9 6.5-9.7 6.5-15.9z"/><path fill="#34A853" d="M24 46c6.1 0 11.2-2 14.9-5.5l-7.3-5.7c-2 1.4-4.6 2.2-7.6 2.2-5.8 0-10.7-3.9-12.5-9.2H3.9v5.9C7.6 40.9 15.2 46 24 46z"/><path fill="#FBBC05" d="M11.5 27.8c-.5-1.4-.7-2.8-.7-4.3s.3-2.9.7-4.3V13.3H3.9C2.3 16.5 1.5 20.1 1.5 24s.8 7.5 2.4 10.7l7.6-6.9z"/><path fill="#EA4335" d="M24 9.5c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C34.9 2.8 29.8.5 24 .5 15.2.5 7.6 5.6 3.9 13.2l7.6 6.9C13.3 13.4 18.2 9.5 24 9.5z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="switch-link">New here? <span onclick="showScreen('register')">Create Account</span></div>
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD ═══════════════════════════════════ -->
+  <div class="screen" id="dashboard">
+    <div class="dash-header">
+      <div class="dash-greeting">Good to see you,</div>
+      <div class="dash-name" id="dash-name">HERO</div>
+      <div class="dash-badge" id="dash-badge">Active Member</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card red">
+        <div class="stat-icon">👥</div>
+        <div class="stat-num" id="count-users">0</div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-sub">Registered members</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">🩸</div>
+        <div class="stat-num" id="count-blood">0</div>
+        <div class="stat-label">Blood Donors</div>
+        <div class="stat-sub">Ready to donate</div>
+      </div>
+      <div class="stat-card green full">
+        <div class="stat-icon">🫀</div>
+        <div class="stat-num" id="count-organ">0</div>
+        <div class="stat-label">Organ Donors</div>
+        <div class="stat-sub">Pledged organ donors</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="action-list">
+      <div class="action-card" onclick="showToast('🩸 Blood request sent!','success')">
+        <div class="action-icon red-bg">🩸</div>
+        <div>
+          <div class="action-title">Request Blood</div>
+          <div class="action-sub">Find nearby donors instantly</div>
+        </div>
+        <div class="action-arrow">›</div>
+      </div>
+      <div class="action-card" onclick="showToast('🫀 Organ registry updated!','success')">
+        <div class="action-icon blue-bg">🫀</div>
+        <div>
+          <div class="action-title">Organ Pledge</div>
+          <div class="action-sub">Register as organ donor</div>
+        </div>
+        <div class="action-arrow">›</div>
+      </div>
+      <div class="action-card" onclick="showToast('🚑 Emergency services notified!','success')">
+        <div class="action-icon green-bg">🚑</div>
+        <div>
+          <div class="action-title">Emergency Alert</div>
+          <div class="action-sub">Send SOS to nearby helpers</div>
+        </div>
+        <div class="action-arrow">›</div>
+      </div>
+    </div>
+
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ══ DOWNLOAD APP MODAL ═════════════════════════════════ -->
+<div class="modal-overlay" id="download-modal" onclick="closeDownloadModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Download HELP App</div>
+    <div class="modal-sub">Follow the steps below to install the app. Some phones may not show Settings or Enable on every step.</div>
+    <div class="download-steps">
+      <div class="download-step">
+        <strong>Step 1</strong>
+        <p>Download this file using the link below.</p>
+      </div>
+      <div class="download-step">
+        <strong>Step 2</strong>
+        <p>Open the downloaded file on your phone.</p>
+      </div>
+      <div class="download-step">
+        <strong>Step 3</strong>
+        <p>Tap the settings option if shown. Some phones may not display this option.</p>
+      </div>
+      <div class="download-step">
+        <strong>Step 4</strong>
+        <p>Tap enable if prompted. This option may not appear on all devices.</p>
+      </div>
+      <div class="download-step">
+        <strong>Step 5</strong>
+        <p>Complete installation by tapping Install.</p>
+      </div>
+    </div>
+    <a class="download-link" href="https://raw.githubusercontent.com/kummithaabhiramreddy/HELP/main/public/help-app.apk" target="_blank" rel="noopener" onclick="startDownload(event)">Download app file</a>
+    <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="closeDownloadModal()">Close</button>
+  </div>
+</div>
+
+<!-- ══ GOOGLE MODAL ═════════════════════════════════════════ -->
+<div id="gsi-fallback-overlay">
+  <div class="gsi-fallback-card">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Sign in with Google</div>
+    <div class="modal-sub">Click below to continue with your Google account.</div>
+    <div id="gsi-fallback-btn"></div>
+    <button class="btn-secondary" style="width:100%;margin-top:4px" onclick="closeGsiOverlay()">Cancel</button>
+  </div>
+</div>
+
+<!-- ══ TOAST ════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════════════ */
+const GOOGLE_CLIENT_ID = '609499873823-9a5pqf9pqv3ka6v15s3qe3srrdakcein.apps.googleusercontent.com';
+// Detect base URL: on Vercel use relative paths; locally use localhost:3000
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000'
+  : '';
+
+let currentUser = null;
+let googleModalMode = '';
+let liveStats = { total_users: 0, blood_donors: 0, organ_donors: 0 };
+
+/* ════════════════════════════════════════════════════
+   LIVE STATS — fetch from Neon DB
+════════════════════════════════════════════════════ */
+async function fetchLiveStats() {
+  try {
+    const res = await fetch(`${API_BASE}/api/stats/live`, { cache: 'no-store' });
+    if (res.ok) {
+      liveStats = await res.json();
+    }
+  } catch (e) {
+    console.warn('Could not fetch live stats:', e);
+  }
+  renderSplashStats();
+}
+
+function renderSplashStats() {
+  animateCount('splash-users', liveStats.total_users  || 0);
+  animateCount('splash-blood', liveStats.blood_donors  || 0);
+  animateCount('splash-organ', liveStats.organ_donors  || 0);
+}
+
+function refreshSplashStats() {
+  fetchLiveStats();
+}
+
+/* ════════════════════════════════════════════════════
+   SCREEN NAVIGATION
+════════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  clearErrors();
+  if (id === 'splash') fetchLiveStats();
+}
+
+function clearErrors() {
+  document.querySelectorAll('.err-msg').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('.field-input').forEach(f => f.classList.remove('error'));
+}
+
+/* ════════════════════════════════════════════════════
+   REGISTER  (POST /api/auth/register)
+════════════════════════════════════════════════════ */
+async function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('reg-pass').value;
+  const blood = document.getElementById('reg-blood').value;
+  const err   = document.getElementById('reg-err');
+
+  if (!name)  { showFieldError('reg-name',  err, 'Please enter your full name.'); return; }
+  if (!email) { showFieldError('reg-email', err, 'Please enter your email.'); return; }
+  if (!isValidEmail(email)) { showFieldError('reg-email', err, 'Enter a valid email address.'); return; }
+  if (pass.length < 6)  { showFieldError('reg-pass',  err, 'Password must be at least 6 characters.'); return; }
+
+  const btn = document.querySelector('#register .btn-primary');
+  btn.textContent = 'Creating…'; btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password: pass, blood }),
+    });
+    const data = await res.json();
+
+    if (res.status === 409) {
+      showErr(err, '⚠️ An account with this email already exists. Please sign in.');
+      return;
+    }
+    if (!res.ok) {
+      showErr(err, data.error || 'Registration failed. Please try again.');
+      return;
+    }
+
+    currentUser = { name, email, isBlood: blood !== '', isOrgan: false };
+    await enterDashboard();
+    showToast('✅ Account created!', 'success');
+  } catch (e) {
+    showErr(err, '❌ Network error. Please check your connection.');
+  } finally {
+    btn.textContent = 'Create Account'; btn.disabled = false;
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   LOGIN  (POST /api/auth/login)
+════════════════════════════════════════════════════ */
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  const err   = document.getElementById('login-err');
+
+  if (!email) { showFieldError('login-email', err, 'Please enter your email.'); return; }
+  if (!pass)  { showFieldError('login-pass',  err, 'Please enter your password.'); return; }
+
+  const btn = document.querySelector('#login .btn-primary');
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const data = await res.json();
+
+    if (res.status === 401) {
+      showErr(err, '❌ No account found or wrong password. Please create an account first.');
+      return;
+    }
+    if (!res.ok) {
+      showErr(err, data.error || 'Login failed. Please try again.');
+      return;
+    }
+
+    currentUser = data.user;
+    await enterDashboard();
+    showToast('👋 Welcome back!', 'success');
+  } catch (e) {
+    showErr(err, '❌ Network error. Please check your connection.');
+  } finally {
+    btn.textContent = 'Sign In'; btn.disabled = false;
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   GOOGLE OAUTH — Real Google Identity Services (GSI)
+════════════════════════════════════════════════════ */
+
+// Called by GSI after user picks an account
+async function handleGoogleCredential(response) {
+  const token = response.credential;
+  // Decode the JWT payload (base64url) without verifying — server verifies
+  const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+  const { email, name, picture, sub: googleId } = payload;
+
+  try {
+    if (googleModalMode === 'login') {
+      // Check if the account exists before signing in
+      const chk = await fetch(`${API_BASE}/api/auth/google-check?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+      const chkData = await chk.json();
+      if (!chkData.exists) {
+        showToast('⚠️ No HELP account found for this Google account. Please register first.', 'error');
+        return;
+      }
+    }
+
+    // Register or sign-in via /api/auth/google
+    const res = await fetch(`${API_BASE}/api/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, googleId }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || '❌ Google sign-in failed.', 'error');
+      return;
+    }
+
+    // Guard for register mode: if account already existed, warn
+    if (googleModalMode === 'register' && data.user && data.existed) {
+      showToast('⚠️ Already registered. Signed in instead.', 'error');
+    } else if (googleModalMode === 'register') {
+      showToast('✅ Registered with Google!', 'success');
+    } else {
+      showToast('👋 Signed in with Google!', 'success');
+    }
+
+    currentUser = data.user || { name, email };
+    await enterDashboard();
+  } catch (e) {
+    showToast('❌ Network error during Google sign-in.', 'error');
+  }
+}
+
+function triggerGoogleSignIn(mode) {
+  googleModalMode = mode;
+  if (typeof google === 'undefined' || !google.accounts) {
+    showToast('⚠️ Google services not loaded. Check your connection.', 'error');
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    cancel_on_tap_outside: true,
+  });
+  google.accounts.id.prompt((notification) => {
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      // One-tap was blocked — fall back to popup
+      google.accounts.id.renderButton(
+        document.getElementById('gsi-fallback-btn'),
+        { theme: 'outline', size: 'large', text: 'continue_with', width: 300 }
+      );
+      document.getElementById('gsi-fallback-overlay').classList.add('open');
+    }
+  });
+}
+
+function closeGsiOverlay() {
+  document.getElementById('gsi-fallback-overlay').classList.remove('open');
+}
+
+// Legacy modal kept for graceful fallback — now redirects to real GSI
+function openGoogleModal(mode) {
+  triggerGoogleSignIn(mode);
+}
+function closeGoogleModal(e) {
+  if (e && e.target !== document.getElementById('google-modal')) return;
+  document.getElementById('google-modal').classList.remove('open');
+}
+
+function openDownloadModal() {
+  document.getElementById('download-modal').classList.add('open');
+}
+
+function closeDownloadModal(e) {
+  if (e && e.target !== document.getElementById('download-modal')) return;
+  document.getElementById('download-modal').classList.remove('open');
+}
+
+/* ════════════════════════════════════════════════════
+   DASHBOARD — loads live stats from Neon
+════════════════════════════════════════════ */
+async function enterDashboard() {
+  // Save user info to localStorage so home.html can access it
+  if (currentUser) {
+    localStorage.setItem('helpUser', JSON.stringify(currentUser));
+  }
+  // Redirect to home page
+  window.location.href = 'home.html';
+}
+
+/* ════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════ */
+function animateCount(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const dur = 1000;
+  const t0  = Date.now();
+  const step = () => {
+    const t = Math.min((Date.now() - t0) / dur, 1);
+    el.textContent = Math.round(easeOut(t) * target);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+function doLogout() {
+  currentUser = null;
+  localStorage.removeItem('helpUser');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value  = '';
+  showScreen('splash');
+  fetchLiveStats();
+  showToast('👋 Signed out safely.', 'success');
+}
+
+function showErr(el, msg) {
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function showFieldError(fieldId, errEl, msg) {
+  document.getElementById(fieldId).classList.add('error');
+  showErr(errEl, msg);
+}
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+function togglePwd(id, btn) {
+  const f = document.getElementById(id);
+  f.type = f.type === 'password' ? 'text' : 'password';
+  btn.textContent = f.type === 'password' ? '👁' : '🙈';
+}
+
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  t.textContent = msg;
+  t.className   = type;
+  t.classList.add('show');
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Init: load real stats immediately
+fetchLiveStats();
+
+// Open Download Modal function
+function downloadAppFile() {
+  document.getElementById('download-modal').classList.add('open');
+}
+
+// Start download in a mobile-friendly way (closes modal then navigates)
+function startDownload(e) {
+  try {
+    e && e.preventDefault();
+    const url = (e && e.currentTarget && e.currentTarget.href) || '/help-app.apk';
+    closeDownloadModal();
+    setTimeout(() => { window.location.href = url; }, 250);
+  } catch (err) {
+    // Fallback: open in new tab
+    const url = '/help-app.apk';
+    window.open(url, '_blank');
+  }
+}
+</script>
+</body>
+</html>

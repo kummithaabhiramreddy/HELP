@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Emergency Care — HELP</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #FF2D3B;
+    --bg: #0A0A0F;
+    --surface: #111118;
+    --surface2: #18181F;
+    --border: rgba(255,255,255,0.08);
+    --border-focus: rgba(255,45,59,0.5);
+    --text: #F2F2F5;
+    --muted: rgba(242,242,245,0.45);
+    --cyan: #00E5FF;
+    --green: #00FF88;
+    --amber: #FFBC42;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    background:var(--bg); font-family:'DM Sans',sans-serif; color:var(--text);
+    min-height:100vh; max-width:420px; margin:0 auto; overflow-x:hidden;
+  }
+  body::after {
+    content:''; position:fixed; top:-60px; left:50%; transform:translateX(-50%);
+    width:280px; height:120px;
+    background:radial-gradient(ellipse,rgba(255,45,59,0.22) 0%,transparent 70%);
+    pointer-events:none; z-index:0;
+  }
+  .top-bar {
+    display:flex; align-items:center; gap:12px;
+    padding:20px 20px 0; position:relative; z-index:1;
+  }
+  .back-btn {
+    width:38px; height:38px; border-radius:11px;
+    background:var(--surface); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; cursor:pointer; text-decoration:none; color:var(--text);
+    flex-shrink:0; transition:transform 0.15s;
+  }
+  .back-btn:active { transform:scale(0.9); }
+  .page-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; letter-spacing:-0.3px; }
+  .urgency-badge {
+    margin-left:auto; background:rgba(255,45,59,0.15);
+    border:1px solid rgba(255,45,59,0.35); color:var(--red);
+    font-size:10px; font-weight:700; letter-spacing:0.1em;
+    padding:4px 10px; border-radius:20px; text-transform:uppercase;
+    animation:blinkBadge 2s ease-in-out infinite;
+  }
+  @keyframes blinkBadge { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .hero-strip {
+    margin:18px 20px 0;
+    background:linear-gradient(135deg,#1a0507 0%,#160308 100%);
+    border:1px solid rgba(255,45,59,0.18); border-radius:18px;
+    padding:16px 18px; display:flex; align-items:center; gap:14px;
+    position:relative; overflow:hidden;
+  }
+  .hero-strip::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--red),transparent); border-radius:18px 18px 0 0;
+  }
+  .hero-icon { font-size:34px; flex-shrink:0; }
+  .hero-text h2 { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:3px; }
+  .hero-text p { font-size:11px; color:var(--muted); line-height:1.4; }
+
+  /* progress */
+  .progress-row {
+    display:flex; align-items:center; padding:18px 20px 0; gap:0; position:relative; z-index:1;
+  }
+  .step { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; position:relative; }
+  .step-dot {
+    width:28px; height:28px; border-radius:50%;
+    background:var(--surface2); border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; color:var(--muted);
+    transition:all 0.3s; position:relative; z-index:2;
+  }
+  .step.active .step-dot { background:var(--red); border-color:var(--red); color:white; box-shadow:0 0 12px rgba(255,45,59,0.5); }
+  .step.done .step-dot { background:rgba(0,255,136,0.15); border-color:var(--green); color:var(--green); }
+  .step-label { font-size:9px; color:var(--muted); font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; }
+  .step.active .step-label { color:var(--red); }
+  .step.done .step-label { color:var(--green); }
+  .step-line { flex:1; height:2px; background:var(--border); margin-bottom:18px; transition:background 0.3s; }
+  .step-line.done { background:var(--green); }
+  .step-line.active { background:var(--red); }
+
+  /* form */
+  .form-wrap { padding:20px 20px 0; position:relative; z-index:1; }
+  .form-page { display:none; }
+  .form-page.active { display:block; }
+  .page-head { margin-bottom:18px; }
+  .page-head .step-tag { font-size:10px; font-weight:700; color:var(--red); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:5px; }
+  .page-head h3 { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; letter-spacing:-0.4px; line-height:1.2; }
+
+  .field { margin-bottom:14px; }
+  .field label {
+    display:flex; align-items:center; gap:6px;
+    font-size:11px; font-weight:600; color:var(--muted);
+    letter-spacing:0.08em; text-transform:uppercase; margin-bottom:7px;
+  }
+  .field label .opt { font-size:9px; color:rgba(242,242,245,0.25); font-weight:500; text-transform:none; letter-spacing:0; }
+  .field label .req { color:var(--red); font-size:13px; line-height:1; }
+  .inp {
+    width:100%; padding:13px 14px;
+    background:var(--surface); border:1px solid var(--border); border-radius:13px;
+    color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500;
+    outline:none; transition:border-color 0.2s,box-shadow 0.2s;
+    -webkit-appearance:none; appearance:none;
+  }
+  .inp:focus { border-color:var(--border-focus); box-shadow:0 0 0 3px rgba(255,45,59,0.1); }
+  .inp::placeholder { color:rgba(242,242,245,0.2); }
+  select.inp {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(242,242,245,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; cursor:pointer;
+  }
+  select.inp option { background:#1a1a24; color:var(--text); }
+  textarea.inp { resize:none; min-height:80px; line-height:1.5; }
+
+  /* need toggle */
+  .need-toggle { display:flex; gap:8px; margin-bottom:16px; }
+  .need-btn {
+    flex:1; padding:12px 8px; border-radius:13px;
+    border:1.5px solid var(--border); background:var(--surface);
+    color:var(--muted); font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+    cursor:pointer; text-align:center; transition:all 0.2s;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .need-btn .nb-icon { font-size:20px; }
+  .need-btn:active { transform:scale(0.95); }
+  .need-btn.sel-blood { border-color:var(--red); background:rgba(255,45,59,0.1); color:#FF6B75; box-shadow:0 0 12px rgba(255,45,59,0.15); }
+  .need-btn.sel-organ { border-color:var(--cyan); background:rgba(0,229,255,0.08); color:var(--cyan); box-shadow:0 0 12px rgba(0,229,255,0.12); }
+  .need-btn.sel-both  { border-color:var(--amber); background:rgba(255,188,66,0.08); color:var(--amber); box-shadow:0 0 12px rgba(255,188,66,0.12); }
+
+  /* blood grid */
+  .blood-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:6px; }
+  .blood-chip {
+    padding:10px 4px; border-radius:11px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--muted); font-family:'Syne',sans-serif;
+    font-size:13px; font-weight:700; text-align:center; cursor:pointer; transition:all 0.18s;
+  }
+  .blood-chip:active { transform:scale(0.9); }
+  .blood-chip.selected { border-color:var(--red); background:rgba(255,45,59,0.12); color:#FF6B75; box-shadow:0 0 10px rgba(255,45,59,0.2); }
+
+  /* organ grid */
+  .organ-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px; }
+  .organ-chip {
+    padding:10px 12px; border-radius:11px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--muted); font-size:12px; font-weight:600;
+    cursor:pointer; transition:all 0.18s; display:flex; align-items:center; gap:7px;
+  }
+  .organ-chip:active { transform:scale(0.95); }
+  .organ-chip.selected { border-color:var(--cyan); background:rgba(0,229,255,0.08); color:var(--cyan); }
+  .organ-chip .oc-icon { font-size:16px; }
+
+  /* severity */
+  .severity-row { display:flex; gap:6px; margin-top:6px; }
+  .sev-btn {
+    flex:1; padding:9px 4px; border-radius:10px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--muted); font-size:10px; font-weight:700;
+    text-align:center; cursor:pointer; transition:all 0.18s;
+    letter-spacing:0.04em; text-transform:uppercase;
+  }
+  .sev-btn.sel-low  { border-color:var(--green); background:rgba(0,255,136,0.08); color:var(--green); }
+  .sev-btn.sel-med  { border-color:var(--amber); background:rgba(255,188,66,0.08); color:var(--amber); }
+  .sev-btn.sel-high { border-color:#FF7F00; background:rgba(255,127,0,0.08); color:#FF7F00; }
+  .sev-btn.sel-crit { border-color:var(--red); background:rgba(255,45,59,0.1); color:var(--red); }
+
+  /* info card */
+  .info-card {
+    background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.12);
+    border-radius:13px; padding:12px 14px; display:flex; gap:10px;
+    align-items:flex-start; margin-bottom:14px;
+  }
+  .info-card .ic-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+  .info-card p { font-size:11px; color:var(--muted); line-height:1.5; }
+
+  /* nav buttons */
+  .nav-btns { display:flex; gap:10px; padding:18px 20px 30px; position:relative; z-index:1; }
+  .btn-back-step {
+    width:48px; height:48px; border-radius:13px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform 0.15s;
+  }
+  .btn-back-step:active { transform:scale(0.92); }
+  .btn-next {
+    flex:1; height:48px; border-radius:13px; border:none;
+    background:var(--red); color:white; font-family:'Syne',sans-serif;
+    font-size:14px; font-weight:700; letter-spacing:0.04em; cursor:pointer;
+    transition:transform 0.15s,box-shadow 0.15s; box-shadow:0 6px 20px rgba(255,45,59,0.35);
+  }
+  .btn-next:active { transform:scale(0.97); box-shadow:0 3px 10px rgba(255,45,59,0.3); }
+
+  /* summary */
+  .summary-list { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:16px; }
+  .sum-row { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--border); }
+  .sum-row:last-child { border-bottom:none; }
+  .sum-icon { font-size:18px; flex-shrink:0; width:24px; text-align:center; }
+  .sum-label { font-size:10px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px; }
+  .sum-val { font-size:13px; font-weight:600; color:var(--text); }
+
+  /* success */
+  .success-screen { display:none; padding:40px 20px; text-align:center; position:relative; z-index:1; }
+  .success-screen.active { display:block; }
+  .success-icon { font-size:64px; margin-bottom:16px; animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+  .success-screen h2 { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; margin-bottom:8px; color:var(--green); }
+  .success-screen p { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
+  .ref-box { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:24px; }
+  .ref-box .ref-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+  .ref-box .ref-num { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--red); letter-spacing:2px; }
+  .eta-strip { display:flex; gap:10px; margin-bottom:24px; }
+  .eta-pill { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:12px 8px; text-align:center; }
+  .eta-pill .ep-val { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--amber); line-height:1; margin-bottom:3px; }
+  .eta-pill .ep-lbl { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; font-weight:600; }
+  .btn-home {
+    width:100%; height:50px; border-radius:14px; border:none;
+    background:var(--red); color:white; font-family:'Syne',sans-serif;
+    font-size:15px; font-weight:700; cursor:pointer;
+    box-shadow:0 6px 20px rgba(255,45,59,0.35); transition:transform 0.15s;
+  }
+  .btn-home:active { transform:scale(0.97); }
+
+  .fade-in { animation:fadeIn 0.3s ease forwards; }
+  @keyframes fadeIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+  .hidden { display:none !important; }
+
+  /* Location gate overlay */
+  .location-gate {
+    display:none; position:fixed; inset:0; z-index:1000;
+    background:rgba(10,10,15,0.96); backdrop-filter:blur(12px);
+    flex-direction:column; align-items:center; justify-content:center;
+    padding:32px 24px; text-align:center;
+  }
+  .location-gate.active { display:flex; }
+  .location-gate .gate-icon { font-size:56px; margin-bottom:18px; animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .location-gate h2 {
+    font-family:'Syne',sans-serif; font-size:22px; font-weight:800;
+    margin-bottom:8px; color:var(--amber);
+  }
+  .location-gate p {
+    font-size:13px; color:var(--muted); line-height:1.7; max-width:320px;
+    margin-bottom:24px;
+  }
+  .location-gate .gate-areas {
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:14px 18px; margin-bottom:24px; max-width:320px; width:100%; text-align:left;
+  }
+  .location-gate .gate-areas .ga-label {
+    font-size:10px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:0.1em; font-weight:700; margin-bottom:8px;
+  }
+  .location-gate .gate-areas .ga-list {
+    font-size:11px; color:var(--text); line-height:1.8;
+  }
+  .gate-btn-blood {
+    width:100%; max-width:320px; height:52px; border-radius:14px; border:none;
+    background:var(--red); color:white; font-family:'Syne',sans-serif;
+    font-size:15px; font-weight:700; cursor:pointer; margin-bottom:12px;
+    box-shadow:0 6px 20px rgba(255,45,59,0.35); transition:transform 0.15s;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+  }
+  .gate-btn-blood:active { transform:scale(0.97); }
+  .gate-btn-back {
+    width:100%; max-width:320px; height:46px; border-radius:13px;
+    border:1.5px solid var(--border); background:var(--surface);
+    color:var(--text); font-family:'DM Sans',sans-serif;
+    font-size:13px; font-weight:600; cursor:pointer; transition:transform 0.15s;
+  }
+  .gate-btn-back:active { transform:scale(0.95); }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="home.html" class="back-btn">&#8592;</a>
+  <div class="page-title">Emergency Care</div>
+  <div class="urgency-badge">🔴 Urgent</div>
+</div>
+
+<div class="hero-strip">
+  <div class="hero-icon">🚑</div>
+  <div class="hero-text">
+    <h2>Patient Intake Form</h2>
+    <p>Fill quickly — our team responds within minutes. Fields marked <span style="color:var(--red)">*</span> are required.</p>
+  </div>
+</div>
+
+<div class="progress-row" id="progressRow">
+  <div class="step active" id="st1"><div class="step-dot">1</div><div class="step-label">Info</div></div>
+  <div class="step-line" id="ln1"></div>
+  <div class="step" id="st2"><div class="step-dot">2</div><div class="step-label">Need</div></div>
+  <div class="step-line" id="ln2"></div>
+  <div class="step" id="st3"><div class="step-dot">3</div><div class="step-label">Details</div></div>
+  <div class="step-line" id="ln3"></div>
+  <div class="step" id="st4"><div class="step-dot">4</div><div class="step-label">Review</div></div>
+</div>
+
+<div class="form-wrap">
+
+  <!-- PAGE 1 -->
+  <div class="form-page active fade-in" id="page1">
+    <div class="page-head">
+      <div class="step-tag">Step 1 of 4</div>
+      <h3>Patient Information</h3>
+    </div>
+    <div class="field">
+      <label>Full Name <span class="req">*</span></label>
+      <input class="inp" id="patientName" type="text" placeholder="e.g. Arjun Sharma" autocomplete="name">
+    </div>
+    <div class="field">
+      <label>Phone Number <span class="req">*</span></label>
+      <input class="inp" id="patientPhone" type="tel" placeholder="+91 98765 43210" autocomplete="tel">
+    </div>
+    <div class="field">
+      <label>Email <span class="opt">(optional)</span></label>
+      <input class="inp" id="patientEmail" type="email" placeholder="your@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Age <span class="req">*</span></label>
+      <input class="inp" id="patientAge" type="number" placeholder="e.g. 34" min="0" max="120">
+    </div>
+    <div class="field">
+      <label>Gender <span class="req">*</span></label>
+      <select class="inp" id="patientGender">
+        <option value="" disabled selected>Select gender</option>
+        <option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Location / Area <span class="req">*</span></label>
+      <select class="inp" id="patientLocation">
+        <option value="" disabled selected>Select your area</option>
+        <optgroup label="Visakhapatnam City">
+          <option value="Visakhapatnam">Visakhapatnam</option>
+          <option value="Vizag">Vizag</option>
+          <option value="Dwaraka Nagar">Dwaraka Nagar</option>
+          <option value="Dabagardens">Dabagardens</option>
+        </optgroup>
+        <optgroup label="Suburban Areas">
+          <option value="Madhurawada">Madhurawada</option>
+          <option value="Gajuwaka">Gajuwaka</option>
+          <option value="Pendurthi">Pendurthi</option>
+          <option value="Parawada">Parawada</option>
+        </optgroup>
+        <optgroup label="Surrounding Towns">
+          <option value="Anakapalli">Anakapalli</option>
+          <option value="Atchutapuram">Atchutapuram</option>
+          <option value="Bheemunipatnam">Bheemunipatnam</option>
+        </optgroup>
+        <optgroup label="Rural / Hill Areas">
+          <option value="Rambilli">Rambilli</option>
+          <option value="Chintapalli">Chintapalli</option>
+          <option value="Araku">Araku</option>
+          <option value="Lammasingi">Lammasingi</option>
+        </optgroup>
+        <option value="other">⚠ Other (Outside Vizag)</option>
+      </select>
+    </div>
+    <div class="info-card">
+      <div class="ic-icon">ℹ️</div>
+      <p>Your information is only shared with emergency responders and stays confidential.</p>
+    </div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="form-page fade-in" id="page2">
+    <div class="page-head">
+      <div class="step-tag">Step 2 of 4</div>
+      <h3>What Does the Patient Need?</h3>
+    </div>
+    <div class="field">
+      <label>Emergency Type <span class="req">*</span></label>
+      <div class="need-toggle">
+        <div class="need-btn" id="btnBlood" onclick="selectNeed('blood')"><span class="nb-icon">🩸</span>Blood</div>
+        <div class="need-btn" id="btnOrgan" onclick="selectNeed('organ')"><span class="nb-icon">🫀</span>Organ</div>
+        <div class="need-btn" id="btnBoth"  onclick="selectNeed('both')"><span class="nb-icon">➕</span>Both</div>
+      </div>
+    </div>
+    <div class="field hidden" id="bloodSection">
+      <label>Required Blood Group <span class="req">*</span></label>
+      <div class="blood-grid">
+        <div class="blood-chip" onclick="selectBlood(this)">A+</div>
+        <div class="blood-chip" onclick="selectBlood(this)">A−</div>
+        <div class="blood-chip" onclick="selectBlood(this)">B+</div>
+        <div class="blood-chip" onclick="selectBlood(this)">B−</div>
+        <div class="blood-chip" onclick="selectBlood(this)">AB+</div>
+        <div class="blood-chip" onclick="selectBlood(this)">AB−</div>
+        <div class="blood-chip" onclick="selectBlood(this)">O+</div>
+        <div class="blood-chip" onclick="selectBlood(this)">O−</div>
+      </div>
+    </div>
+    <div class="field hidden" id="organSection">
+      <label>Required Organ <span class="req">*</span> <span class="opt">(select all that apply)</span></label>
+      <div class="organ-grid">
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">🫀</span>Heart</div>
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">🫁</span>Lungs</div>
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">🟫</span>Liver</div>
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">🫘</span>Kidney</div>
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">🟡</span>Pancreas</div>
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">👁️</span>Cornea</div>
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">🦴</span>Bone Marrow</div>
+        <div class="organ-chip" onclick="toggleOrgan(this)"><span class="oc-icon">🩺</span>Skin Tissue</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Condition Severity <span class="req">*</span></label>
+      <div class="severity-row">
+        <div class="sev-btn" onclick="selectSev(this,'low','sel-low')">🟢<br>Low</div>
+        <div class="sev-btn" onclick="selectSev(this,'medium','sel-med')">🟡<br>Med</div>
+        <div class="sev-btn" onclick="selectSev(this,'high','sel-high')">🟠<br>High</div>
+        <div class="sev-btn" onclick="selectSev(this,'critical','sel-crit')">🔴<br>Crit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3 -->
+  <div class="form-page fade-in" id="page3">
+    <div class="page-head">
+      <div class="step-tag">Step 3 of 4</div>
+      <h3>Medical Details</h3>
+    </div>
+    <div class="field">
+      <label>Known Allergies <span class="opt">(optional)</span></label>
+      <input class="inp" id="allergies" type="text" placeholder="e.g. Penicillin, Latex">
+    </div>
+    <div class="field">
+      <label>Current Medications <span class="opt">(optional)</span></label>
+      <input class="inp" id="medications" type="text" placeholder="e.g. Aspirin 75mg, Metformin">
+    </div>
+    <div class="field">
+      <label>Pre-existing Conditions <span class="opt">(optional)</span></label>
+      <input class="inp" id="conditions" type="text" placeholder="e.g. Diabetes, Hypertension">
+    </div>
+    <div class="field">
+      <label>Emergency Contact Name <span class="req">*</span></label>
+      <input class="inp" id="ecName" type="text" placeholder="Relative or guardian name">
+    </div>
+    <div class="field">
+      <label>Emergency Contact Phone <span class="req">*</span></label>
+      <input class="inp" id="ecPhone" type="tel" placeholder="+91 98765 43210">
+    </div>
+    <div class="field">
+      <label>Additional Notes <span class="opt">(optional)</span></label>
+      <textarea class="inp" id="notes" placeholder="Any other information the medical team should know…"></textarea>
+    </div>
+  </div>
+
+  <!-- PAGE 4 -->
+  <div class="form-page fade-in" id="page4">
+    <div class="page-head">
+      <div class="step-tag">Step 4 of 4</div>
+      <h3>Review &amp; Submit</h3>
+    </div>
+    <div class="summary-list" id="summaryList"></div>
+    <div class="info-card">
+      <div class="ic-icon">🚨</div>
+      <p>Submitting alerts the nearest available emergency unit. Please verify all details before submitting.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="nav-btns" id="navBtns">
+  <button class="btn-back-step" id="backBtn" onclick="prevPage()" style="display:none">&#8592;</button>
+  <button class="btn-next" id="nextBtn" onclick="nextPage()">Continue &#8594;</button>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <h2>Request Sent!</h2>
+  <p>Your emergency request has been received. The nearest response unit has been alerted and is on the way.</p>
+  <div class="ref-box">
+    <div class="ref-label">Reference ID</div>
+    <div class="ref-num" id="refNum">—</div>
+  </div>
+  <div class="eta-strip">
+    <div class="eta-pill"><div class="ep-val" id="etaMin">~8</div><div class="ep-lbl">Min ETA</div></div>
+    <div class="eta-pill"><div class="ep-val">24/7</div><div class="ep-lbl">Support</div></div>
+    <div class="eta-pill"><div class="ep-val">🟢</div><div class="ep-lbl">Active</div></div>
+  </div>
+  <button class="btn-home" onclick="window.location.href='home.html'">&#8592; Back to Home</button>
+</div>
+
+<!-- LOCATION GATE OVERLAY -->
+<div class="location-gate" id="locationGate">
+  <div class="gate-icon">📍</div>
+  <h2>Service Area Limited</h2>
+  <p>Emergency care registration is currently available only in <strong style="color:var(--text)">Visakhapatnam (Vizag)</strong> and surrounding areas. You can still search for nearby blood banks.</p>
+  <div class="gate-areas">
+    <div class="ga-label">🗺️ Available Areas</div>
+    <div class="ga-list">
+      Visakhapatnam · Vizag · Dwaraka Nagar · Dabagardens<br>
+      Madhurawada · Gajuwaka · Pendurthi · Parawada<br>
+      Anakapalli · Atchutapuram · Bheemunipatnam<br>
+      Rambilli · Chintapalli · Araku · Lammasingi
+    </div>
+  </div>
+  <button class="gate-btn-blood" onclick="window.location.href='bloodbanks.html'">🩸 Find Blood Banks</button>
+  <button class="gate-btn-back" onclick="closeGate()">← Go Back &amp; Select Area</button>
+</div>
+
+<script>
+  const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+    ? 'http://localhost:3000' 
+    : '';
+
+  let currentPage = 1;
+  const totalPages = 4;
+  let needType = '', bloodGroup = '', organs = [], severity = '';
+
+  function selectNeed(type) {
+    needType = type;
+    ['btnBlood','btnOrgan','btnBoth'].forEach(id =>
+      document.getElementById(id).classList.remove('sel-blood','sel-organ','sel-both'));
+    document.getElementById('bloodSection').classList.add('hidden');
+    document.getElementById('organSection').classList.add('hidden');
+    if (type === 'blood') {
+      document.getElementById('btnBlood').classList.add('sel-blood');
+      document.getElementById('bloodSection').classList.remove('hidden');
+    } else if (type === 'organ') {
+      document.getElementById('btnOrgan').classList.add('sel-organ');
+      document.getElementById('organSection').classList.remove('hidden');
+    } else {
+      document.getElementById('btnBoth').classList.add('sel-both');
+      document.getElementById('bloodSection').classList.remove('hidden');
+      document.getElementById('organSection').classList.remove('hidden');
+    }
+  }
+
+  function selectBlood(el) {
+    document.querySelectorAll('.blood-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    bloodGroup = el.textContent;
+  }
+
+  function toggleOrgan(el) {
+    el.classList.toggle('selected');
+    const name = el.textContent.trim();
+    if (el.classList.contains('selected')) { if (!organs.includes(name)) organs.push(name); }
+    else organs = organs.filter(o => o !== name);
+  }
+
+  function selectSev(el, val, cls) {
+    document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('sel-low','sel-med','sel-high','sel-crit'));
+    el.classList.add(cls);
+    severity = val;
+  }
+
+  function updateProgress(page) {
+    for (let i = 1; i <= 4; i++) {
+      const st = document.getElementById('st' + i);
+      st.classList.remove('active','done');
+      if (i < page) { st.classList.add('done'); st.querySelector('.step-dot').textContent = '✓'; }
+      else if (i === page) { st.classList.add('active'); st.querySelector('.step-dot').textContent = i; }
+      else st.querySelector('.step-dot').textContent = i;
+    }
+    for (let i = 1; i <= 3; i++) {
+      const ln = document.getElementById('ln' + i);
+      ln.classList.remove('done','active');
+      if (i < page) ln.classList.add('done');
+      else if (i === page) ln.classList.add('active');
+    }
+  }
+
+  function validate(page) {
+    if (page === 1) {
+      if (!document.getElementById('patientName').value.trim()) { alert('Please enter patient name.'); return false; }
+      if (!document.getElementById('patientPhone').value.trim()) { alert('Please enter phone number.'); return false; }
+      if (!document.getElementById('patientAge').value.trim()) { alert('Please enter patient age.'); return false; }
+      if (!document.getElementById('patientGender').value) { alert('Please select gender.'); return false; }
+      if (!document.getElementById('patientLocation').value) { alert('Please select your area.'); return false; }
+    }
+    if (page === 2) {
+      if (!needType) { alert('Please select emergency type.'); return false; }
+      if ((needType==='blood'||needType==='both') && !bloodGroup) { alert('Please select a blood group.'); return false; }
+      if ((needType==='organ'||needType==='both') && organs.length===0) { alert('Please select at least one organ.'); return false; }
+      if (!severity) { alert('Please select condition severity.'); return false; }
+    }
+    if (page === 3) {
+      if (!document.getElementById('ecName').value.trim()) { alert('Please enter emergency contact name.'); return false; }
+      if (!document.getElementById('ecPhone').value.trim()) { alert('Please enter emergency contact phone.'); return false; }
+    }
+    return true;
+  }
+
+  function buildSummary() {
+    const rows = [
+      { icon:'👤', label:'Patient Name', val: document.getElementById('patientName').value },
+      { icon:'📞', label:'Phone', val: document.getElementById('patientPhone').value },
+      { icon:'🎂', label:'Age / Gender', val: `${document.getElementById('patientAge').value} yrs · ${document.getElementById('patientGender').value}` },
+      { icon:'📍', label:'Location', val: document.getElementById('patientLocation').value },
+      { icon:'🆘', label:'Need Type', val: needType.toUpperCase() },
+    ];
+    if (bloodGroup) rows.push({ icon:'🩸', label:'Blood Group', val: bloodGroup });
+    if (organs.length) rows.push({ icon:'🫀', label:'Organs', val: organs.join(', ') });
+    rows.push({ icon:'⚠️', label:'Severity', val: severity.charAt(0).toUpperCase()+severity.slice(1) });
+    if (document.getElementById('ecName').value)
+      rows.push({ icon:'🧑‍⚕️', label:'Emergency Contact', val: `${document.getElementById('ecName').value} — ${document.getElementById('ecPhone').value}` });
+    document.getElementById('summaryList').innerHTML = rows.map(r =>
+      `<div class="sum-row"><div class="sum-icon">${r.icon}</div><div><div class="sum-label">${r.label}</div><div class="sum-val">${r.val}</div></div></div>`
+    ).join('');
+  }
+
+  function nextPage() {
+    if (!validate(currentPage)) return;
+    if (currentPage === totalPages) { submitForm(); return; }
+    document.getElementById('page'+currentPage).classList.remove('active');
+    currentPage++;
+    const pg = document.getElementById('page'+currentPage);
+    pg.classList.add('active');
+    pg.classList.remove('fade-in'); void pg.offsetWidth; pg.classList.add('fade-in');
+    if (currentPage === 4) buildSummary();
+    updateProgress(currentPage);
+    document.getElementById('backBtn').style.display = currentPage > 1 ? 'flex' : 'none';
+    document.getElementById('nextBtn').textContent = currentPage === 4 ? '🚨 Submit Emergency' : 'Continue →';
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  function prevPage() {
+    if (currentPage === 1) return;
+    document.getElementById('page'+currentPage).classList.remove('active');
+    currentPage--;
+    document.getElementById('page'+currentPage).classList.add('active');
+    updateProgress(currentPage);
+    document.getElementById('backBtn').style.display = currentPage > 1 ? 'flex' : 'none';
+    document.getElementById('nextBtn').textContent = 'Continue →';
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  async function submitForm() {
+    const loggedInId = localStorage.getItem('userId');
+    const ref = loggedInId || ('HLP-' + Math.floor(100000 + Math.random()*900000));
+    const payload = {
+      referenceId: ref,
+      patientName: document.getElementById('patientName').value.trim(),
+      patientPhone: document.getElementById('patientPhone').value.trim(),
+      patientEmail: document.getElementById('patientEmail').value.trim(),
+      patientAge: document.getElementById('patientAge').value.trim(),
+      patientGender: document.getElementById('patientGender').value,
+      patientLocation: document.getElementById('patientLocation').value.trim(),
+      needType: needType,
+      bloodGroup: bloodGroup,
+      organs: organs,
+      severity: severity,
+      allergies: document.getElementById('allergies').value.trim(),
+      medications: document.getElementById('medications').value.trim(),
+      conditions: document.getElementById('conditions').value.trim(),
+      ecName: document.getElementById('ecName').value.trim(),
+      ecPhone: document.getElementById('ecPhone').value.trim(),
+      notes: document.getElementById('notes').value.trim()
+    };
+
+    try {
+      const response = await fetch(API_BASE + '/api/emergency/intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to submit request');
+      }
+
+      document.getElementById('progressRow').style.display = 'none';
+      document.getElementById('page4').classList.remove('active');
+      document.getElementById('navBtns').style.display = 'none';
+      document.querySelector('.hero-strip').style.display = 'none';
+      const eta = Math.floor(5 + Math.random()*10);
+      document.getElementById('refNum').textContent = data.referenceId || ref;
+      document.getElementById('etaMin').textContent = '~' + eta;
+      document.getElementById('successScreen').classList.add('active');
+      window.scrollTo({ top:0, behavior:'smooth' });
+    } catch (err) {
+      alert('Error submitting emergency request: ' + err.message);
+    }
+  }
+
+  // Location gate logic
+  document.getElementById('patientLocation').addEventListener('change', function() {
+    if (this.value === 'other') {
+      document.getElementById('locationGate').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  function closeGate() {
+    document.getElementById('locationGate').classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('patientLocation').value = '';
+  }
+</script>
+</body>
+</html>
